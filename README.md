@@ -60,6 +60,8 @@ The URL hostname must match the staging Project Ref exactly. If staging variable
 
 The database migrations live in `supabase/migrations/` and are not applied automatically by the application. Review [supabase/MIGRATION_AUDIT.md](./supabase/MIGRATION_AUDIT.md) before deployment and apply migrations only after a read-only schema and migration-history inspection.
 
+For a verified-empty staging project, apply migrations `001` through `005` first, then run [supabase/seed.sql](./supabase/seed.sql) in the Supabase SQL Editor to add the sample catalog, inventory, collections, and storefront defaults. The seed is safe to rerun and does not replace existing products or stock. Product images use the storefront fallback until uploaded through the admin media flow.
+
 ### First owner setup
 
 Create the intended account through `/admin/setup-owner` and verify its email using the configured Supabase Auth flow. This public page creates an ordinary customer account only; it cannot grant a role. A trusted project database administrator must verify the Auth user and run `supabase/first-owner.sql` with that user's UUID substituted for the placeholder. The SQL serializes concurrent claims and refuses to run when an owner already exists or the account email is unverified. Never run it as an application user or expose database credentials in the browser. Recovery or owner replacement requires a separate explicit database-administrator action.

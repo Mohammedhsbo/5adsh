@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Heart, Plus } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-import { formatPrice, type StoreProduct } from "@/lib/store-data";
+import { formatPrice, siteImages, type StoreProduct } from "@/lib/store-data";
 import { cn } from "@/lib/utils";
 
 export function ProductCard({
@@ -24,7 +24,7 @@ export function ProductCard({
         className="relative block aspect-[3/4] overflow-hidden bg-card grain"
       >
         <img
-          src={p.images[0]}
+          src={p.images[0] ?? siteImages.hero}
           alt={p.name}
           loading="lazy"
           className="h-full w-full object-cover grayscale transition duration-700 group-hover:scale-110"
