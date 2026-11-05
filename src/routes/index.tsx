@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpRight, Menu, Search, ShoppingBag, X } from "lucide-react";
+import { ArrowUpRight, Menu, Search, ShieldCheck, ShoppingBag, UserRound, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Intro } from "@/components/Intro";
@@ -126,6 +126,12 @@ function Index() {
                 {cartCount}
               </span>
             </Link>
+            <Link to="/login" aria-label="User sign in">
+              <UserRound className="h-5 w-5" />
+            </Link>
+            <Link to="/admin/login" aria-label="Administrator sign in">
+              <ShieldCheck className="h-5 w-5" />
+            </Link>
           </div>
         </div>
       </header>
@@ -144,7 +150,8 @@ function Index() {
               { label: "Kids", category: "kids" },
               { label: "Drops", category: "new-drops" },
               { label: "Cart", href: "/cart" },
-              { label: "Admin", href: "/admin" },
+              { label: "User sign in", href: "/login" },
+              { label: "Admin sign in", href: "/admin/login" },
             ].map((item) =>
               "category" in item ? (
                 <Link

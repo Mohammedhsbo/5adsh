@@ -4,11 +4,14 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { type ReactNode } from "react";
+
+import { StoreNavbar } from "@/components/StoreNavbar";
 
 import appCss from "../styles.css?url";
 
@@ -112,9 +115,12 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const showStoreNavbar = pathname !== "/" && !pathname.startsWith("/admin");
 
   return (
     <QueryClientProvider client={queryClient}>
+      {showStoreNavbar ? <StoreNavbar /> : null}
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
     </QueryClientProvider>

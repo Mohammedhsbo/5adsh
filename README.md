@@ -21,6 +21,13 @@ Available scripts:
 - `npm run lint` — run ESLint
 - `npm run format` — format the project with Prettier
 
+## Deploying to Vercel
+
+The Vite config registers Nitro to package the TanStack Start server for Vercel Functions. In
+Vercel, use the **TanStack Start** framework preset and leave the build and output directory
+settings at their detected defaults; do not deploy `dist/client` as a static site. Configure the
+public Supabase variables listed below in the Vercel project settings, then redeploy.
+
 ## Application routes
 
 The storefront is available at `/`, with catalog and commerce routes including `/products`, `/products/:category`, `/product/:slug`, `/cart`, `/checkout`, and `/tracking`.
