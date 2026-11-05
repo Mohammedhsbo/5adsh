@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 
-import { signInCustomer } from "@/lib/auth";
+import { hasAdminAccess, signInCustomer } from "@/lib/auth";
 import { getUserFacingError } from "@/lib/user-messages";
 
 export const Route = createFileRoute("/login")({
@@ -22,7 +22,7 @@ function LoginPage() {
         return;
       }
       setError("");
-      navigate({ to: "/account" });
+      navigate({ to: hasAdminAccess(result.user ?? null) ? "/admin" : "/account" });
     } catch (cause) {
       setError(getUserFacingError(cause, "Sign in could not be completed. Please try again."));
     }
