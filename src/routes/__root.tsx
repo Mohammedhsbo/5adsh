@@ -116,7 +116,11 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
-  const showStoreNavbar = pathname !== "/" && !pathname.startsWith("/admin");
+  const isAdminDashboard =
+    pathname.startsWith("/admin") &&
+    pathname !== "/admin/login" &&
+    pathname !== "/admin/setup-owner";
+  const showStoreNavbar = pathname !== "/" && !isAdminDashboard;
 
   return (
     <QueryClientProvider client={queryClient}>
