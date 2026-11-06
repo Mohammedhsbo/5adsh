@@ -9,8 +9,9 @@ Apply the files in numeric order, in one migration runner:
 3. `003_secure_order_tracking.sql`
 4. `004_assistant_permissions.sql`
 5. `005_first_owner_setup.sql`
+6. `006_restore_public_read_policies.sql`
 
-Run migrations in order with a single migration runner. `001` checks that Supabase Auth and Storage are enabled. `002`, `004`, and `005` check their key prerequisites and fail with actionable messages. Migrations `002` and `004` replace policies on managed tables because PostgreSQL ORs permissive policies together. `005` publishes setup availability only; it does not expose an owner-grant RPC.
+Run migrations in order with a single migration runner. `001` checks that Supabase Auth and Storage are enabled. `002`, `004`, `005`, and `006` check their key prerequisites and fail with actionable messages. Migrations `002` and `004` replace policies on managed tables because PostgreSQL ORs permissive policies together. `005` publishes setup availability only; it does not expose an owner-grant RPC. `006` restores public read access to active storefront data and per-user role reads after the permission-policy replacement in `004`.
 
 ## Existing/hosted project status
 
@@ -20,7 +21,7 @@ This repository environment has a linked-project reference in the Supabase CLI m
 
 1. Inspect the hosted `public`, `auth`, and `storage` schemas and migration history read-only; record data and any partial migration state.
 2. Take/verify a recoverable backup and review each SQL diff against the observed database.
-3. For an empty project, apply `001` through `005` in numeric order through Supabase's migration runner. For any nonempty/partially initialized project, do not replay this chain blindly; prepare a forward repair migration based on the inspection.
+3. For an empty project, apply `001` through `006` in numeric order through Supabase's migration runner. For any nonempty/partially initialized project, do not replay this chain blindly; prepare a forward repair migration based on the inspection.
 4. Confirm tables, functions, indexes, policies, the `product-media` bucket, and migration history read-only afterward.
 5. Create and email-verify the intended Auth account, then have a trusted database administrator run `supabase/first-owner.sql` once with its Auth UUID. Confirm exactly one owner exists.
 6. Smoke-test public catalog, checkout, tracking, customer isolation, owner access, and assistant permissions against the target project.
@@ -29,26 +30,26 @@ Local static migration tests do not execute PostgreSQL. This environment could n
 
 ## Dependency audit
 
-| Dependency | Created by | Used by | Required columns or behavior |
-| --- | --- | --- | --- |
-| `customers`, `products`, `orders`, `order_items`, `promos` | `001_init.sql` | `002_secure_store.sql` | Legacy compatibility tables; product/order base columns remain in use |
-| `profiles` | `002_secure_store.sql` | auth code, admin API, RLS | `id` references `auth.users(id)`, `email`, `full_name`, `phone` |
-| `app_roles` | `002_secure_store.sql` | auth code, RLS, `004`, `005` | `user_id` references `auth.users(id)`, role check, `(user_id, role)` primary key |
-| `categories` | `002_secure_store.sql` | storefront/admin API, RLS | `id`, `name`, `slug`, `image`, `arabic`, `active` |
-| `product_variants` | `002_secure_store.sql` | product API/order RPC, RLS | `product_id`, `size`, `color`, `sku` |
-| `inventory` | `002_secure_store.sql` | product API/order RPC, RLS | `variant_id`, `stock_quantity` |
-| `collections`, `collection_products` | `002_secure_store.sql` | admin API, RLS | collection/product foreign keys and `position` |
-| `coupons` | `002_secure_store.sql` | coupon/order RPC, admin API, RLS | coupon validation fields and constraints |
-| `media_assets` | `002_secure_store.sql` | upload API, RLS | storage metadata, uploader, content type, byte size |
-| `homepage_content`, `store_settings` | `002_secure_store.sql` | storefront/admin API, order RPC, RLS | singleton rows and settings/content fields |
-| order extensions | `002_secure_store.sql` | order API and `003` | `profile_id`, `idempotency_key`, `full_name`, `phone`, `governorate`, `delivery_method`, `coupon_code` |
-| `order_items.variant_id` | `002_secure_store.sql` | order RPC and admin reads | product variant reference |
-| `handle_auth_user` + auth trigger | `002_secure_store.sql` | Supabase Auth signup/update | creates or updates profile and default customer role |
-| `has_store_role`, `set_customer_role`, `validate_store_coupon`, `place_store_order`, `track_store_order(uuid)` | `002_secure_store.sql` | client API | all are created after their referenced tables and granted narrowly |
-| `track_store_order(uuid,text)` | `003_secure_order_tracking.sql` | tracking page | checks order UUID and `orders.phone`; revokes UUID-only overload |
-| `store_permissions`, owner/permission functions and policies | `004_assistant_permissions.sql` | admin API and RLS | owner gets all permissions through `has_store_permission`; staff/admin are explicit |
-| owner unique index | `004_assistant_permissions.sql` | owner bootstrap and role safety | one partial unique owner index on `app_roles.role` |
-| owner setup availability | `005_first_owner_setup.sql` | `/admin/setup-owner` | public boolean availability only; no client-callable role grant |
+| Dependency                                                                                                     | Created by                      | Used by                              | Required columns or behavior                                                                           |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| `customers`, `products`, `orders`, `order_items`, `promos`                                                     | `001_init.sql`                  | `002_secure_store.sql`               | Legacy compatibility tables; product/order base columns remain in use                                  |
+| `profiles`                                                                                                     | `002_secure_store.sql`          | auth code, admin API, RLS            | `id` references `auth.users(id)`, `email`, `full_name`, `phone`                                        |
+| `app_roles`                                                                                                    | `002_secure_store.sql`          | auth code, RLS, `004`, `005`         | `user_id` references `auth.users(id)`, role check, `(user_id, role)` primary key                       |
+| `categories`                                                                                                   | `002_secure_store.sql`          | storefront/admin API, RLS            | `id`, `name`, `slug`, `image`, `arabic`, `active`                                                      |
+| `product_variants`                                                                                             | `002_secure_store.sql`          | product API/order RPC, RLS           | `product_id`, `size`, `color`, `sku`                                                                   |
+| `inventory`                                                                                                    | `002_secure_store.sql`          | product API/order RPC, RLS           | `variant_id`, `stock_quantity`                                                                         |
+| `collections`, `collection_products`                                                                           | `002_secure_store.sql`          | admin API, RLS                       | collection/product foreign keys and `position`                                                         |
+| `coupons`                                                                                                      | `002_secure_store.sql`          | coupon/order RPC, admin API, RLS     | coupon validation fields and constraints                                                               |
+| `media_assets`                                                                                                 | `002_secure_store.sql`          | upload API, RLS                      | storage metadata, uploader, content type, byte size                                                    |
+| `homepage_content`, `store_settings`                                                                           | `002_secure_store.sql`          | storefront/admin API, order RPC, RLS | singleton rows and settings/content fields                                                             |
+| order extensions                                                                                               | `002_secure_store.sql`          | order API and `003`                  | `profile_id`, `idempotency_key`, `full_name`, `phone`, `governorate`, `delivery_method`, `coupon_code` |
+| `order_items.variant_id`                                                                                       | `002_secure_store.sql`          | order RPC and admin reads            | product variant reference                                                                              |
+| `handle_auth_user` + auth trigger                                                                              | `002_secure_store.sql`          | Supabase Auth signup/update          | creates or updates profile and default customer role                                                   |
+| `has_store_role`, `set_customer_role`, `validate_store_coupon`, `place_store_order`, `track_store_order(uuid)` | `002_secure_store.sql`          | client API                           | all are created after their referenced tables and granted narrowly                                     |
+| `track_store_order(uuid,text)`                                                                                 | `003_secure_order_tracking.sql` | tracking page                        | checks order UUID and `orders.phone`; revokes UUID-only overload                                       |
+| `store_permissions`, owner/permission functions and policies                                                   | `004_assistant_permissions.sql` | admin API and RLS                    | owner gets all permissions through `has_store_permission`; staff/admin are explicit                    |
+| owner unique index                                                                                             | `004_assistant_permissions.sql` | owner bootstrap and role safety      | one partial unique owner index on `app_roles.role`                                                     |
+| owner setup availability                                                                                       | `005_first_owner_setup.sql`     | `/admin/setup-owner`                 | public boolean availability only; no client-callable role grant                                        |
 
 ## Function, trigger, and policy inventory
 

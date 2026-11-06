@@ -1,4 +1,5 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
+import { LogOut } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { Wordmark } from "@/components/Wordmark";
@@ -6,6 +7,7 @@ import { getUserFacingError } from "@/lib/user-messages";
 import {
   getCurrentAdminSession,
   hasAdminAccess,
+  signOutAdmin,
   type CustomerSession,
   type StorePermission,
 } from "@/lib/auth";
@@ -84,6 +86,7 @@ function AdminLayout() {
 }
 
 export function AdminPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<AdminTab>("overview");
   const [adminSession, setAdminSession] = useState<CustomerSession | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -313,6 +316,16 @@ export function AdminPage() {
 
   const saveContent = () => runAction(() => saveHomepageContent(content));
 
+  const handleSignOut = async () => {
+    setActionError("");
+    try {
+      await signOutAdmin();
+      navigate({ to: "/admin/login", replace: true });
+    } catch (cause) {
+      setActionError(getUserFacingError(cause, "Sign out failed. Please try again."));
+    }
+  };
+
   const isOwner = adminSession?.role === "owner";
   const hasPermission = (permission: StorePermission) =>
     isOwner || Boolean(adminSession?.permissions.includes(permission));
@@ -414,8 +427,18 @@ export function AdminPage() {
           </p>
           <h1 className="font-display text-5xl uppercase md:text-7xl">Dashboard</h1>
         </div>
-        <div className="rounded border border-dashed px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-          {`Signed in as ${adminSession?.fullName}`}
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="rounded border border-dashed px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            {`Signed in as ${adminSession?.fullName}`}
+          </div>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="inline-flex items-center gap-2 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em]"
+          >
+            <LogOut className="h-4 w-4" />
+            Sign out
+          </button>
         </div>
       </div>
       {actionError ? (

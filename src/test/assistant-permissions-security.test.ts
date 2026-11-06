@@ -7,6 +7,10 @@ const migration = readFileSync(
   resolve(process.cwd(), "supabase/migrations/004_assistant_permissions.sql"),
   "utf8",
 );
+const storefrontPoliciesMigration = readFileSync(
+  resolve(process.cwd(), "supabase/migrations/006_restore_public_read_policies.sql"),
+  "utf8",
+);
 
 describe("assistant permission migration safeguards", () => {
   it("enforces one owner at the database level", () => {
@@ -48,6 +52,12 @@ describe("assistant permission migration safeguards", () => {
     expect(migration).toMatch(/has_store_permission\('manage_orders'\)/i);
   });
 
+  it("allows authenticated users to read only their own role", () => {
+    expect(storefrontPoliciesMigration).toMatch(
+      /create policy users_read_own_roles on public\.app_roles[\s\S]*for select to authenticated using \(user_id = auth\.uid\(\)\)/i,
+    );
+  });
+
   it("limits the assistant count at the database boundary", () => {
     expect(migration).toMatch(/no more than five assistants/i);
     expect(migration).toMatch(/create trigger enforce_store_assistant_limit/i);
@@ -65,5 +75,20 @@ describe("assistant permission migration safeguards", () => {
     expect(authSource).toMatch(/assignedRoles = new Set\(roles\?\.map\(\(row\) => row\.role\)\)/);
     expect(adminSource).toMatch(/hasAdminAccess\(session\)/);
     expect(adminSource).toMatch(/No permissions assigned/);
+  });
+
+  it("restores anonymous reads for active storefront products and related public data", () => {
+    expect(storefrontPoliciesMigration).toMatch(
+      /create policy "Public read active products" on public\.products[\s\S]*using \(active\)/i,
+    );
+    expect(storefrontPoliciesMigration).toMatch(
+      /create policy "Public read product variants" on public\.product_variants[\s\S]*p\.active/i,
+    );
+    expect(storefrontPoliciesMigration).toMatch(
+      /create policy "Public read inventory" on public\.inventory[\s\S]*p\.active/i,
+    );
+    expect(storefrontPoliciesMigration).toMatch(
+      /create policy users_read_own_roles on public\.app_roles[\s\S]*user_id = auth\.uid\(\)/i,
+    );
   });
 });
