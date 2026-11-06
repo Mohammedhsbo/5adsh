@@ -140,9 +140,17 @@ function ProductDetailPage() {
 
           <div className="mt-6 space-y-5 border-y py-6">
             <div>
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                Size
-              </p>
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                  Size
+                </p>
+                <Link
+                  to="/size-guide"
+                  className="font-mono text-[10px] uppercase tracking-[0.15em] underline underline-offset-4 hover:text-foreground"
+                >
+                  Size guide
+                </Link>
+              </div>
               <div className="flex flex-wrap gap-2">
                 {product.sizes.map((size) => (
                   <button

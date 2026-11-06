@@ -11,6 +11,7 @@ import {
 } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 
+import { StoreFooter } from "@/components/StoreFooter";
 import { StoreNavbar } from "@/components/StoreNavbar";
 
 import appCss from "../styles.css?url";
@@ -121,6 +122,7 @@ function RootComponent() {
     pathname !== "/admin/login" &&
     pathname !== "/admin/setup-owner";
   const showStoreNavbar = !isAdminDashboard;
+  const showStoreFooter = !pathname.startsWith("/admin");
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -129,6 +131,7 @@ function RootComponent() {
       <div className={showStoreNavbar ? "pt-[72px]" : undefined}>
         <Outlet />
       </div>
+      {showStoreFooter ? <StoreFooter /> : null}
     </QueryClientProvider>
   );
 }

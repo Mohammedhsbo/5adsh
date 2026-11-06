@@ -94,6 +94,7 @@ export function StoreNavbar() {
               { label: "Home", to: "/" },
               { label: "All products", to: "/products" },
               ...categoryLinks.map(({ label, to }) => ({ label, to })),
+              { label: "Size guide", to: "/size-guide" },
               { label: "Cart", to: "/cart" },
               { label: "User sign in", to: "/login" },
               { label: "Admin sign in", to: "/admin/login" },
