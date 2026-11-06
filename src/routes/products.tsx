@@ -52,7 +52,6 @@ function ProductsPage() {
       color: variant.color,
       quantity: 1,
     });
-    window.dispatchEvent(new Event("cart:updated"));
   };
 
   return (

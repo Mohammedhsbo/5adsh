@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { ArrowUpRight, Menu, Search, ShieldCheck, ShoppingBag, UserRound, X } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Intro } from "@/components/Intro";
@@ -32,7 +32,6 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const { products, categories, homepage, status, error } = useStorefrontData();
-  const [menu, setMenu] = useState(false);
   const [cartCount, setCartCount] = useState(getCartCount());
   const [toast, setToast] = useState(false);
   const newDrops = products.filter((product) => product.newArrival || product.featured);
@@ -72,13 +71,8 @@ function Index() {
         <div className="flex w-max animate-marquee gap-10 whitespace-nowrap">
           {Array.from({ length: 2 }).map((_, key) => (
             <span key={key} className="flex gap-10">
-              {[
-                homepage.announcement || "FREE SHIPPING ACROSS EGYPT OVER EGP 2,000",
-                "DROP 07 — OUT NOW",
-                "خدش مش عيب",
-                "LEAVE A MARK",
-              ].map((item) => (
-                <span key={item}>/// {item}</span>
+              {homepage.tickerMessages.map((item, index) => (
+                <span key={`${item}-${index}`}>/// {item}</span>
               ))}
             </span>
           ))}
@@ -88,95 +82,6 @@ function Index() {
       <div className="mx-auto max-w-[1600px] px-4 pt-6 md:px-8">
         <StorefrontDataNotice status={status} error={error} />
       </div>
-
-      <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-3 md:px-8">
-          <nav className="hidden gap-6 font-mono text-xs tracking-widest md:flex">
-            {[
-              ["MEN", "/products/men"],
-              ["WOMEN", "/products/women"],
-              ["KIDS", "/products/kids"],
-              ["DROPS", "/products/new-drops"],
-            ].map(([label, href]) => (
-              <Link
-                key={label}
-                to={href as string}
-                className="relative after:absolute after:-bottom-1 after:left-0 after:h-px after:w-0 after:bg-foreground after:transition-all hover:after:w-full"
-              >
-                {label}
-              </Link>
-            ))}
-          </nav>
-
-          <button className="md:hidden" onClick={() => setMenu(true)} aria-label="Menu">
-            <Menu />
-          </button>
-
-          <Link to="/" aria-label="5ADSH home">
-            <Wordmark className="text-3xl md:text-4xl" />
-          </Link>
-
-          <div className="flex items-center gap-5">
-            <Link to="/products" aria-label="Search products">
-              <Search className="hidden h-5 w-5 md:block" />
-            </Link>
-            <Link to="/cart" className="relative" aria-label="Cart">
-              <ShoppingBag className="h-5 w-5" />
-              <span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center bg-primary px-1 font-mono text-[9px] text-primary-foreground">
-                {cartCount}
-              </span>
-            </Link>
-            <Link to="/login" aria-label="User sign in">
-              <UserRound className="h-5 w-5" />
-            </Link>
-            <Link to="/admin/login" aria-label="Administrator sign in">
-              <ShieldCheck className="h-5 w-5" />
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      {menu && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-primary p-6 text-primary-foreground animate-rise">
-          <button className="self-end" onClick={() => setMenu(false)} aria-label="Close">
-            <X />
-          </button>
-          <div className="mt-8 flex flex-col gap-2">
-            {[
-              { label: "Home", href: "/" },
-              { label: "All products", href: "/products" },
-              { label: "Men", category: "men" },
-              { label: "Women", category: "women" },
-              { label: "Kids", category: "kids" },
-              { label: "Drops", category: "new-drops" },
-              { label: "Cart", href: "/cart" },
-              { label: "User sign in", href: "/login" },
-              { label: "Admin sign in", href: "/admin/login" },
-            ].map((item) =>
-              "category" in item ? (
-                <Link
-                  key={item.label}
-                  to="/products/$category"
-                  params={{ category: item.category }}
-                  onClick={() => setMenu(false)}
-                  className="font-display text-4xl uppercase"
-                >
-                  {item.label}
-                </Link>
-              ) : (
-                <Link
-                  key={item.label}
-                  to={item.href}
-                  onClick={() => setMenu(false)}
-                  className="font-display text-4xl uppercase"
-                >
-                  {item.label}
-                </Link>
-              ),
-            )}
-          </div>
-        </div>
-      )}
 
       <section className="relative mx-auto max-w-[1600px] px-4 pb-16 pt-6 md:px-8">
         <div className="pointer-events-none relative z-10 leading-[0.8]">

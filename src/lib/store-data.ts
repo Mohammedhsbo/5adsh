@@ -15,12 +15,15 @@ export type ProductVariant = {
   stock: number;
 };
 
+export type ProductAudience = "all" | "men" | "women" | "kids";
+
 export type StoreProduct = {
   id: string;
   slug: string;
   name: string;
   category: string;
   subcategory: string;
+  audience?: ProductAudience;
   price: number;
   salePrice?: number | undefined;
   sku: string;
@@ -87,6 +90,7 @@ export type HomepageContent = {
   primaryCta: string;
   secondaryCta: string;
   announcement: string;
+  tickerMessages: string[];
 };
 
 const defaultProducts: StoreProduct[] = [
@@ -294,12 +298,20 @@ const defaultCollections: StoreCollection[] = [
   },
 ];
 
+export const defaultTickerMessages = [
+  "FREE SHIPPING ACROSS EGYPT OVER EGP 2,000",
+  "DROP 07 — OUT NOW",
+  "خدش مش عيب",
+  "LEAVE A MARK",
+];
+
 const defaultHomepage: HomepageContent = {
   heroTitle: "Wear the mark. Not the rules.",
   heroSubtitle: "Raw-edge denim. Heavy cotton. Hand-distressed in small batches.",
   primaryCta: "Shop now",
   secondaryCta: "View drops",
   announcement: "FREE SHIPPING ACROSS EGYPT OVER EGP 2,000",
+  tickerMessages: defaultTickerMessages,
 };
 
 const defaultSettings: StoreSettings = {

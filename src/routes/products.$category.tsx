@@ -6,6 +6,7 @@ import { StorefrontDataNotice } from "@/components/StorefrontDataNotice";
 import { useStorefrontData } from "@/hooks/use-storefront-data";
 import { addCartItem, getCartCount } from "@/lib/cart";
 import { formatPrice, siteImages } from "@/lib/store-data";
+import { filterStorefrontProducts } from "@/lib/storefront-state";
 
 export const Route = createFileRoute("/products/$category")({
   component: CategoryPage,
@@ -18,18 +19,13 @@ function CategoryPage() {
   const [sort, setSort] = useState("newest");
 
   const filteredProducts = useMemo(() => {
-    const normalizedCategory = category.toLowerCase();
-    const matches = products.filter((product) => {
-      const matchesCategory =
-        normalizedCategory === "all" ||
-        product.category.toLowerCase() === normalizedCategory ||
-        product.subcategory.toLowerCase() === normalizedCategory ||
-        product.category.toLowerCase().replace(/s$/, "") === normalizedCategory;
-      const matchesSearch =
-        !search ||
-        product.name.toLowerCase().includes(search.toLowerCase()) ||
-        product.category.toLowerCase().includes(search.toLowerCase());
-      return matchesCategory && matchesSearch;
+    const matches = filterStorefrontProducts(products, category).filter((product) => {
+      const normalizedSearch = search.trim().toLowerCase();
+      return (
+        !normalizedSearch ||
+        product.name.toLowerCase().includes(normalizedSearch) ||
+        product.category.toLowerCase().includes(normalizedSearch)
+      );
     });
 
     return [...matches].sort((a, b) => {
@@ -53,7 +49,6 @@ function CategoryPage() {
       color: variant.color,
       quantity: 1,
     });
-    window.dispatchEvent(new Event("cart:updated"));
   };
 
   return (
@@ -63,7 +58,9 @@ function CategoryPage() {
           <p className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground">
             Collection
           </p>
-          <h1 className="font-display text-5xl uppercase md:text-7xl">{category}</h1>
+          <h1 className="font-display text-5xl uppercase md:text-7xl">
+            {category === "new-drops" ? "Drops" : category}
+          </h1>
         </div>
         <StorefrontDataNotice status={status} error={error} />
         <Link

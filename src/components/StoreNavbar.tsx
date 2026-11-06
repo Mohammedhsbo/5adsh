@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { Menu, Search, ShieldCheck, ShoppingBag, UserRound, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Wordmark } from "@/components/Wordmark";
+import { getCartCount } from "@/lib/cart";
 
 const categoryLinks = [
+  { label: "HOME", to: "/" },
   { label: "MEN", to: "/products/men" },
   { label: "WOMEN", to: "/products/women" },
   { label: "KIDS", to: "/products/kids" },
@@ -13,13 +15,24 @@ const categoryLinks = [
 
 export function StoreNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(getCartCount);
+
+  useEffect(() => {
+    const updateCartCount = () => setCartCount(getCartCount());
+    window.addEventListener("cart:updated", updateCartCount);
+    window.addEventListener("storage", updateCartCount);
+    return () => {
+      window.removeEventListener("cart:updated", updateCartCount);
+      window.removeEventListener("storage", updateCartCount);
+    };
+  }, []);
 
   return (
     <>
-      <header className="sticky top-0 z-40 border-b bg-background/90 backdrop-blur">
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-4 py-3 md:px-8">
+      <header className="fixed inset-x-0 top-0 z-40 border-b bg-background/90 backdrop-blur">
+        <div className="mx-auto flex h-[72px] max-w-[1600px] items-center justify-between px-4 md:px-8">
           <nav
-            aria-label="Product categories"
+            aria-label="Main navigation"
             className="hidden gap-6 font-mono text-xs tracking-widest md:flex"
           >
             {categoryLinks.map((item) => (
@@ -50,8 +63,11 @@ export function StoreNavbar() {
             <Link to="/products" aria-label="Search products">
               <Search className="hidden h-5 w-5 md:block" />
             </Link>
-            <Link to="/cart" aria-label="Shopping cart">
+            <Link to="/cart" className="relative" aria-label={`Shopping cart, ${cartCount} items`}>
               <ShoppingBag className="h-5 w-5" />
+              <span className="absolute -right-2 -top-2 grid h-4 min-w-4 place-items-center bg-primary px-1 font-mono text-[9px] text-primary-foreground">
+                {cartCount}
+              </span>
             </Link>
             <Link to="/login" aria-label="User sign in">
               <UserRound className="h-5 w-5" />

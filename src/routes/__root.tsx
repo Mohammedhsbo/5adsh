@@ -120,13 +120,15 @@ function RootComponent() {
     pathname.startsWith("/admin") &&
     pathname !== "/admin/login" &&
     pathname !== "/admin/setup-owner";
-  const showStoreNavbar = pathname !== "/" && !isAdminDashboard;
+  const showStoreNavbar = !isAdminDashboard;
 
   return (
     <QueryClientProvider client={queryClient}>
       {showStoreNavbar ? <StoreNavbar /> : null}
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <div className={showStoreNavbar ? "pt-[72px]" : undefined}>
+        <Outlet />
+      </div>
     </QueryClientProvider>
   );
 }

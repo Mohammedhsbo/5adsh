@@ -37,6 +37,7 @@ import {
   uploadProductImage,
   type AdminStoreData,
 } from "@/lib/store-api";
+import { parseTickerMessages } from "@/lib/storefront-state";
 
 type AdminTab =
   | "overview"
@@ -63,6 +64,7 @@ const emptyProduct = (): StoreProduct => ({
   name: "",
   category: "T-Shirts",
   subcategory: "T-Shirts",
+  audience: "all",
   price: 0,
   salePrice: 0,
   sku: "",
@@ -411,47 +413,52 @@ export function AdminPage() {
   }
 
   return (
-    <div className="mx-auto max-w-[1600px] px-4 py-10 md:px-8">
-      <div className="mb-10 flex items-center justify-between border-b pb-4">
+    <div className="admin-dashboard mx-auto min-h-screen max-w-[1600px] px-4 py-6 md:px-8 md:py-10">
+      <div className="mb-8 flex items-center justify-between border-b border-foreground/15 pb-4">
         <Link to="/" aria-label="5ADSH home">
           <Wordmark className="text-3xl md:text-4xl" />
         </Link>
-        <Link to="/" className="font-mono text-[10px] uppercase tracking-[0.2em]">
-          Storefront
-        </Link>
-      </div>
-      <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-        <div>
-          <p className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground">
-            Admin
-          </p>
-          <h1 className="font-display text-5xl uppercase md:text-7xl">Dashboard</h1>
-        </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="rounded border border-dashed px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            {`Signed in as ${adminSession?.fullName}`}
-          </div>
+        <div className="flex items-center gap-4">
+          <Link to="/" className="font-mono text-[10px] uppercase tracking-[0.2em]">
+            Storefront
+          </Link>
           <button
             type="button"
             onClick={handleSignOut}
-            className="inline-flex items-center gap-2 border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em]"
+            className="inline-flex items-center gap-2 border border-black bg-black px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-white transition-colors hover:bg-black/80"
           >
             <LogOut className="h-4 w-4" />
             Sign out
           </button>
         </div>
       </div>
+      <div className="mb-8 flex flex-col justify-between gap-5 border bg-primary p-6 text-primary-foreground shadow-sm md:flex-row md:items-end md:p-8">
+        <div>
+          <p className="font-mono text-xs uppercase tracking-[0.3em] text-muted-foreground">
+            Admin / Control room
+          </p>
+          <h1 className="mt-2 font-display text-5xl uppercase leading-none md:text-7xl">
+            Dashboard
+          </h1>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="border border-primary-foreground/30 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-primary-foreground/75">
+            {`Signed in as ${adminSession?.fullName}`}
+          </div>
+        </div>
+      </div>
       {actionError ? (
         <p className="mb-5 border border-red-500 p-3 text-sm text-red-600">{actionError}</p>
       ) : null}
 
-      <div className="mb-6 flex flex-wrap gap-2">
+      <div className="mb-8 flex flex-wrap gap-2 border-b border-foreground/15 pb-4">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             type="button"
             onClick={() => setActiveTab(tab.key)}
-            className={`border px-3 py-2 font-mono text-[10px] uppercase tracking-[0.2em] ${activeTab === tab.key ? "bg-primary text-primary-foreground" : ""}`}
+            aria-pressed={activeTab === tab.key}
+            className={`border px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] ${activeTab === tab.key ? "border-primary bg-primary text-primary-foreground shadow-sm" : "border-foreground/15 bg-card text-muted-foreground hover:text-foreground"}`}
           >
             {tab.label}
           </button>
@@ -460,7 +467,7 @@ export function AdminPage() {
 
       {activeTab === "overview" && (
         <div className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[
               ["Total revenue", `EGP ${metrics.revenue.toLocaleString("en-US")}`],
               ["Orders", metrics.orders],
@@ -471,21 +478,27 @@ export function AdminPage() {
               ["Customers", metrics.customers],
               ["Skus", products.length],
             ].map(([label, value]) => (
-              <div key={String(label)} className="border bg-card p-4">
+              <div
+                key={String(label)}
+                className="admin-metric border border-foreground/10 bg-card p-5"
+              >
                 <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                   {label}
                 </p>
-                <p className="mt-3 font-display text-4xl uppercase">{String(value)}</p>
+                <p className="mt-4 font-display text-4xl uppercase md:text-5xl">{String(value)}</p>
               </div>
             ))}
           </div>
 
           <div className="grid gap-6 lg:grid-cols-2">
-            <div className="border p-5">
+            <div className="admin-panel border border-foreground/10 bg-card p-5">
               <h2 className="mb-4 font-display text-3xl uppercase">Top performing products</h2>
               <div className="space-y-3">
                 {products.slice(0, 4).map((product) => (
-                  <div key={product.id} className="flex items-center justify-between border p-3">
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between border border-foreground/10 bg-background p-3 transition-colors hover:bg-muted"
+                  >
                     <div>
                       <p className="font-medium uppercase">{product.name}</p>
                       <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -500,14 +513,17 @@ export function AdminPage() {
               </div>
             </div>
 
-            <div className="border p-5">
+            <div className="admin-panel border border-foreground/10 bg-card p-5">
               <h2 className="mb-4 font-display text-3xl uppercase">Recent orders</h2>
               <div className="space-y-3">
                 {orders
                   .slice(-5)
                   .reverse()
                   .map((order) => (
-                    <div key={order.id} className="border p-3">
+                    <div
+                      key={order.id}
+                      className="border border-foreground/10 bg-background p-3 transition-colors hover:bg-muted"
+                    >
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -540,7 +556,7 @@ export function AdminPage() {
                   <div>
                     <p className="font-medium uppercase">{product.name}</p>
                     <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-                      {product.category} / {product.sizes.join(", ")}
+                      {product.category} / {product.audience ?? "all"} / {product.sizes.join(", ")}
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -589,6 +605,24 @@ export function AdminPage() {
                 placeholder="Category"
                 className="w-full border border-input bg-background px-3 py-2 text-xs uppercase tracking-[0.2em] outline-none"
               />
+              <label className="block space-y-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+                Storefront audience
+                <select
+                  value={productDraft.audience ?? "all"}
+                  onChange={(event) =>
+                    setProductDraft({
+                      ...productDraft,
+                      audience: event.target.value as NonNullable<StoreProduct["audience"]>,
+                    })
+                  }
+                  className="w-full border border-input bg-background px-3 py-3 text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <option value="all">All audiences</option>
+                  <option value="men">Men</option>
+                  <option value="women">Women</option>
+                  <option value="kids">Kids</option>
+                </select>
+              </label>
               <input
                 value={productDraft.price}
                 onChange={(event) =>
@@ -1042,6 +1076,22 @@ export function AdminPage() {
               placeholder="Announcement bar"
               className="md:col-span-2 border border-input bg-background px-3 py-2 text-xs uppercase tracking-[0.2em] outline-none"
             />
+            <label className="md:col-span-2 space-y-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+              Scrolling homepage messages (one per line)
+              <textarea
+                value={content.tickerMessages.join("\n")}
+                onChange={(event) =>
+                  setContent({
+                    ...content,
+                    tickerMessages: parseTickerMessages(event.target.value),
+                  })
+                }
+                placeholder={
+                  "FREE SHIPPING ACROSS EGYPT OVER EGP 2,000\nDROP 07 — OUT NOW\nخدش مش عيب\nLEAVE A MARK"
+                }
+                className="min-h-32 w-full border border-input bg-background px-3 py-3 font-sans text-sm normal-case tracking-normal text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              />
+            </label>
             <button
               type="button"
               onClick={saveContent}

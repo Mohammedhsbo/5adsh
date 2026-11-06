@@ -71,6 +71,7 @@ export function getStoredCart(): CartItem[] {
 
 export function persistCart(items: CartItem[]) {
   writeJSON(CART_STORAGE_KEY, items);
+  if (typeof window !== "undefined") window.dispatchEvent(new Event("cart:updated"));
 }
 
 export function getCartCount() {

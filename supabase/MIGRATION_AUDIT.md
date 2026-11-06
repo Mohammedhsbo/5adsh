@@ -10,8 +10,10 @@ Apply the files in numeric order, in one migration runner:
 4. `004_assistant_permissions.sql`
 5. `005_first_owner_setup.sql`
 6. `006_restore_public_read_policies.sql`
+7. `007_product_audience.sql`
+8. `008_homepage_ticker_messages.sql`
 
-Run migrations in order with a single migration runner. `001` checks that Supabase Auth and Storage are enabled. `002`, `004`, `005`, and `006` check their key prerequisites and fail with actionable messages. Migrations `002` and `004` replace policies on managed tables because PostgreSQL ORs permissive policies together. `005` publishes setup availability only; it does not expose an owner-grant RPC. `006` restores public read access to active storefront data and per-user role reads after the permission-policy replacement in `004`.
+Run migrations in order with a single migration runner. `001` checks that Supabase Auth and Storage are enabled. `002`, `004`, `005`, `006`, `007`, and `008` check their key prerequisites and fail with actionable messages. Migrations `002` and `004` replace policies on managed tables because PostgreSQL ORs permissive policies together. `005` publishes setup availability only; it does not expose an owner-grant RPC. `006` restores public read access to active storefront data and per-user role reads after the permission-policy replacement in `004`. `007` adds a constrained product audience (`all`, `men`, `women`, or `kids`), defaulting existing products to `all`. `008` adds editable homepage ticker messages with the existing four announcements as the default.
 
 ## Existing/hosted project status
 
@@ -21,7 +23,7 @@ This repository environment has a linked-project reference in the Supabase CLI m
 
 1. Inspect the hosted `public`, `auth`, and `storage` schemas and migration history read-only; record data and any partial migration state.
 2. Take/verify a recoverable backup and review each SQL diff against the observed database.
-3. For an empty project, apply `001` through `006` in numeric order through Supabase's migration runner. For any nonempty/partially initialized project, do not replay this chain blindly; prepare a forward repair migration based on the inspection.
+3. For an empty project, apply `001` through `008` in numeric order through Supabase's migration runner. For any nonempty/partially initialized project, do not replay this chain blindly; prepare a forward repair migration based on the inspection.
 4. Confirm tables, functions, indexes, policies, the `product-media` bucket, and migration history read-only afterward.
 5. Create and email-verify the intended Auth account, then have a trusted database administrator run `supabase/first-owner.sql` once with its Auth UUID. Confirm exactly one owner exists.
 6. Smoke-test public catalog, checkout, tracking, customer isolation, owner access, and assistant permissions against the target project.

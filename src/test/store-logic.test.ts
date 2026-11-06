@@ -13,7 +13,11 @@ import {
   validateOrderTrackingInput,
 } from "@/lib/store-api";
 import { clampProductQuantity, storeProducts } from "@/lib/store-data";
-import { createInitialStorefrontData } from "@/lib/storefront-state";
+import {
+  createInitialStorefrontData,
+  filterStorefrontProducts,
+  parseTickerMessages,
+} from "@/lib/storefront-state";
 
 const firstProduct = storeProducts[0];
 const secondProduct = storeProducts[1];
@@ -184,5 +188,44 @@ describe("store logic", () => {
     expect(storeProducts.length).toBeGreaterThan(0);
     expect(initialLiveState.status).toBe("loading");
     expect(initialLiveState.products).toEqual([]);
+  });
+
+  it("shows all products on audience pages and featured or new products on Drops", () => {
+    for (const audience of ["men", "women", "kids"]) {
+      expect(filterStorefrontProducts(storeProducts, audience)).toEqual(storeProducts);
+    }
+
+    expect(filterStorefrontProducts(storeProducts, "new-drops")).toEqual(
+      storeProducts.filter((product) => product.featured || product.newArrival),
+    );
+    expect(filterStorefrontProducts(storeProducts, "jeans")).toEqual(
+      storeProducts.filter((product) => product.category.toLowerCase() === "jeans"),
+    );
+  });
+
+  it("filters audience pages by assigned product audience and keeps all-audience products", () => {
+    const products = [
+      { ...firstProduct, audience: "men" as const },
+      { ...secondProduct, audience: "women" as const },
+      { ...firstProduct, id: "all-audiences", audience: "all" as const },
+    ];
+
+    expect(filterStorefrontProducts(products, "men").map((product) => product.id)).toEqual([
+      firstProduct.id,
+      "all-audiences",
+    ]);
+    expect(filterStorefrontProducts(products, "women").map((product) => product.id)).toEqual([
+      secondProduct.id,
+      "all-audiences",
+    ]);
+    expect(filterStorefrontProducts(products, "kids").map((product) => product.id)).toEqual([
+      "all-audiences",
+    ]);
+  });
+
+  it("parses editable marquee messages one per line and preserves Arabic", () => {
+    expect(
+      parseTickerMessages(" FREE SHIPPING \r\n\n DROP 07 — OUT NOW \n خدش مش عيب \n LEAVE A MARK "),
+    ).toEqual(["FREE SHIPPING", "DROP 07 — OUT NOW", "خدش مش عيب", "LEAVE A MARK"]);
   });
 });

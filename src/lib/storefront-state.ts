@@ -10,12 +10,41 @@ export type StorefrontDataState = {
   error: string;
 };
 
+export function parseTickerMessages(value: string) {
+  return value
+    .split(/\r?\n/)
+    .map((message) => message.trim())
+    .filter(Boolean);
+}
+
+export function filterStorefrontProducts(products: StoreProduct[], category: string) {
+  const normalizedCategory = category.toLowerCase();
+  if (["men", "women", "kids"].includes(normalizedCategory)) {
+    return products.filter(
+      (product) =>
+        !product.audience || product.audience === "all" || product.audience === normalizedCategory,
+    );
+  }
+  if (normalizedCategory === "all") return products;
+  if (normalizedCategory === "new-drops") {
+    return products.filter((product) => product.featured || product.newArrival);
+  }
+
+  return products.filter(
+    (product) =>
+      product.category.toLowerCase() === normalizedCategory ||
+      product.subcategory.toLowerCase() === normalizedCategory ||
+      product.category.toLowerCase().replace(/s$/, "") === normalizedCategory,
+  );
+}
+
 const emptyHomepage: HomepageContent = {
   heroTitle: "",
   heroSubtitle: "",
   primaryCta: "",
   secondaryCta: "",
   announcement: "",
+  tickerMessages: [],
 };
 
 export function createInitialStorefrontData(backendConfigured: boolean): StorefrontDataState {

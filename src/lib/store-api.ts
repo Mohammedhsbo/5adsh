@@ -1,5 +1,6 @@
 import type {
   CustomerProfile,
+  defaultTickerMessages,
   HomepageContent,
   PromoCode,
   StoreCategory,
@@ -114,6 +115,7 @@ function mapProduct(row: DbRow): StoreProduct {
     name: stringField(row, "name"),
     category: stringField(row, "category"),
     subcategory: stringField(row, "subcategory"),
+    audience: parseProductAudience(row.audience),
     price: numberField(row, "price"),
     ...(typeof salePrice === "number" ? { salePrice } : {}),
     sku: stringField(row, "sku"),
@@ -127,6 +129,12 @@ function mapProduct(row: DbRow): StoreProduct {
     sizes: stringArrayField(row, "sizes"),
     variants,
   };
+}
+
+function parseProductAudience(value: unknown): StoreProduct["audience"] {
+  if (value == null) return "all";
+  if (value === "all" || value === "men" || value === "women" || value === "kids") return value;
+  throw new Error("The database returned an unsupported product audience.");
 }
 
 export async function loadStoreProducts(includeInactive = false): Promise<StoreProduct[]> {
@@ -171,6 +179,10 @@ export async function loadHomepageContent(): Promise<HomepageContent> {
     primaryCta: stringField(row, "primary_cta"),
     secondaryCta: stringField(row, "secondary_cta"),
     announcement: stringField(row, "announcement"),
+    tickerMessages:
+      row.ticker_messages == null
+        ? defaultTickerMessages
+        : stringArrayField(row, "ticker_messages"),
   };
 }
 
@@ -359,6 +371,11 @@ export async function loadAdminStore(): Promise<AdminStoreData> {
       primaryCta: homepageRow ? stringField(homepageRow, "primary_cta") : "",
       secondaryCta: homepageRow ? stringField(homepageRow, "secondary_cta") : "",
       announcement: homepageRow ? stringField(homepageRow, "announcement") : "",
+      tickerMessages: homepageRow
+        ? homepageRow.ticker_messages == null
+          ? defaultTickerMessages
+          : stringArrayField(homepageRow, "ticker_messages")
+        : defaultTickerMessages,
     },
     settings: {
       currency: "EGP",
@@ -397,6 +414,7 @@ export async function saveStoreProduct(product: StoreProduct): Promise<StoreProd
     name: product.name,
     category: product.category,
     subcategory: product.subcategory,
+    audience: product.audience ?? "all",
     price: product.price,
     sale_price: product.salePrice ?? null,
     sku: product.sku,
@@ -583,6 +601,7 @@ export async function saveHomepageContent(content: HomepageContent) {
     primary_cta: content.primaryCta,
     secondary_cta: content.secondaryCta,
     announcement: content.announcement,
+    ticker_messages: content.tickerMessages,
   });
   fail("Could not save homepage content", error);
 }
